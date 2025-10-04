@@ -1,0 +1,13 @@
+{
+  "baseline_accuracy": 11.08,
+  "quantized_accuracy": 9.8,
+  "accuracy_drop": 1.2799999999999994,
+  "voltage_levels": [
+    3.5,
+    4.0,
+    4.5,
+    5.0,
+    5.5
+  ],
+  "method": "post_training_quantization"
+}

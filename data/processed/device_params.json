@@ -1,0 +1,23 @@
+{
+  "switching_time": {
+    "afe_ns": 104.71285480508985,
+    "fe_ns": 251.18864315095823
+  },
+  "voltage_levels": [
+    3.5,
+    4.0,
+    4.5,
+    5.0,
+    5.5
+  ],
+  "variation": 0.029912287954673843,
+  "baseline_accuracy": {
+    "final": 0.9798,
+    "best": 0.9804
+  },
+  "energy": {
+    "baseline_pj": 0.1,
+    "pulse_width_us": 1.0,
+    "voltage_v": 5.0
+  }
+}

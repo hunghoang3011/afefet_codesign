@@ -1,0 +1,20 @@
+{
+  "low_power": {
+    "pulse_width_us": 1.0,
+    "voltage_v": 3.5,
+    "energy_pj": 0.05466735936358733,
+    "accuracy": 0.8528720334556057
+  },
+  "balanced": {
+    "pulse_width_us": 1.0,
+    "voltage_v": 3.5,
+    "energy_pj": 0.05466735936358733,
+    "accuracy": 0.8528720334556057
+  },
+  "high_accuracy": {
+    "pulse_width_us": 719.6856730011514,
+    "voltage_v": 3.5,
+    "energy_pj": 46.95031048741726,
+    "accuracy": 0.8734995200347433
+  }
+}

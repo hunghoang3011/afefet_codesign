@@ -1,0 +1,31 @@
+{
+  "baseline_accuracy": 96.0,
+  "quantized_accuracy": 95.18,
+  "accuracy_drop": 0.8199999999999932,
+  "voltage_levels": [
+    3.5,
+    4.0,
+    4.5,
+    5.0,
+    5.5
+  ],
+  "base_voltage": 4.5,
+  "scaling_factors": {
+    "fc1_alpha": 0.7704027891159058,
+    "fc2_alpha": 0.2836552858352661
+  },
+  "energy_analysis": {
+    "avg_energy_per_op": 20.898652392947103,
+    "min_theoretical_energy": 12.25,
+    "max_theoretical_energy": 30.25,
+    "voltage_distribution": {
+      "3.5V": 11365,
+      "4.0V": 40648,
+      "4.5V": 116067,
+      "5.0V": 53908,
+      "5.5V": 16212
+    },
+    "total_operations": 238200
+  },
+  "method": "voltage_aware_quantization"
+}
