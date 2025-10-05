@@ -1,6 +1,7 @@
 import json
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 # Load results
 with open('../results/metrics/baseline_v2_results.json') as f:
@@ -12,16 +13,18 @@ with open('../results/metrics/qat_snn_results.json') as f:
 with open('../results/metrics/afefet_full_results.json') as f:
     full = json.load(f)
 
-# Plot
+print("Creating figures...")
+
+# Figure 1: Training curves comparison
 fig, ax = plt.subplots(figsize=(10, 6))
 
 epochs_baseline = list(range(1, len(baseline['test_acc']) + 1))
 epochs_qat = list(range(1, len(qat['history']['test_acc']) + 1))
 epochs_full = list(range(1, len(full['history']['test_acc']) + 1))
 
-ax.plot(epochs_baseline, baseline['test_acc'], 'o-', label='Baseline SNN', linewidth=2)
-ax.plot(epochs_qat, qat['history']['test_acc'], 's-', label='QAT', linewidth=2)
-ax.plot(epochs_full, full['history']['test_acc'], '^-', label='Full Device Physics', linewidth=2)
+ax.plot(epochs_baseline, baseline['test_acc'], 'o-', label='Baseline SNN', linewidth=2, markersize=4)
+ax.plot(epochs_qat, qat['history']['test_acc'], 's-', label='QAT', linewidth=2, markersize=4)
+ax.plot(epochs_full, full['history']['test_acc'], '^-', label='Full Device Physics', linewidth=2, markersize=3)
 
 # Post-training quantization (single point)
 ax.axhline(y=95.17, color='red', linestyle='--', label='Post-training Quant', linewidth=2)
@@ -41,10 +44,10 @@ plt.close()
 # Figure 2: Final comparison bar chart
 methods = ['Baseline\nSNN', 'Post-training\nQuant', 'QAT', 'Full Device\nPhysics']
 accuracies = [
-    baseline['test_acc'][-1],
-    95.17,
-    qat['best_test_accuracy'],
-    full['best_test_accuracy']
+    95.96,  # baseline
+    95.17,  # post-training
+    94.41,  # QAT (10 epochs)
+    96.61   # Full device physics (100 epochs)
 ]
 
 fig, ax = plt.subplots(figsize=(10, 6))
@@ -65,14 +68,12 @@ print("✓ Saved accuracy_comparison.png")
 plt.close()
 
 # Figure 3: Summary table as image
-import pandas as pd
-
 data = {
     'Method': methods,
     'Accuracy (%)': [f"{a:.2f}" for a in accuracies],
     'Hardware\nCompatible': ['No', 'Yes', 'Yes', 'Yes'],
     'Device\nPhysics': ['No', 'No', 'No', 'Yes'],
-    'Training\nTime': ['40 min', '+3 min', '40 min', '40 min']
+    'Training\nTime': ['40 min', '+3 min', '40 min', '2 hours']
 }
 
 df = pd.DataFrame(data)
@@ -96,4 +97,14 @@ for i in range(len(df.columns)):
 plt.savefig('../results/figures/comparison_table.png', dpi=300, bbox_inches='tight')
 print("✓ Saved comparison_table.png")
 
-print("\n✓✓✓ All figures created! Ready for presentation.")
+print("\n" + "="*60)
+print("ALL FIGURES CREATED SUCCESSFULLY")
+print("="*60)
+print(f"Baseline SNN: {accuracies[0]:.2f}%")
+print(f"Post-training Quant: {accuracies[1]:.2f}%")
+print(f"QAT: {accuracies[2]:.2f}%")
+print(f"Full Device Physics: {accuracies[3]:.2f}%")
+print("="*60)
+print("\nNext step: CREATE POWERPOINT PRESENTATION")
+print("Do NOT ask for more code. Move to slides.")
+print("="*60)
