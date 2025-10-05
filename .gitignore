@@ -196,7 +196,7 @@ checkpoints/*.pt
 checkpoints/*.ckpt
 !checkpoints/.gitkeep
 
-results/models/*.pth
+
 results/models/*.pt
 !results/models/.gitkeep
 
@@ -209,13 +209,9 @@ logs/tensorboard/
 
 # Outputs & visualizations
 outputs/
-figures/
-*.png
 *.jpg
 *.pdf
-!assets/*.png
 !assets/*.jpg
-!docs/images/*.png
 
 # Experiment tracking
 wandb/

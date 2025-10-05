@@ -87,8 +87,8 @@ def evaluate(model, test_loader, device):
 
 def main():
     # Config
-    batch_size = 128
-    num_epochs = 5  # Start with 5 for quick test
+    batch_size = 256
+    num_epochs = 100  # Start with 5 for quick test
     lr = 1e-3
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     

@@ -1,7 +1,7 @@
 {
-  "baseline_accuracy": 11.08,
+  "baseline_accuracy": 96.36,
   "quantized_accuracy": 9.8,
-  "accuracy_drop": 1.2799999999999994,
+  "accuracy_drop": 86.56,
   "voltage_levels": [
     3.5,
     4.0,

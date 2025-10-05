@@ -1,7 +1,7 @@
 {
-  "baseline_accuracy": 96.0,
-  "quantized_accuracy": 95.18,
-  "accuracy_drop": 0.8199999999999932,
+  "baseline_accuracy": 97.02,
+  "quantized_accuracy": 95.75,
+  "accuracy_drop": 1.269999999999996,
   "voltage_levels": [
     3.5,
     4.0,
@@ -11,19 +11,19 @@
   ],
   "base_voltage": 4.5,
   "scaling_factors": {
-    "fc1_alpha": 0.7704027891159058,
-    "fc2_alpha": 0.2836552858352661
+    "fc1_alpha": 0.24472162127494812,
+    "fc2_alpha": 0.053274575620889664
   },
   "energy_analysis": {
-    "avg_energy_per_op": 20.898652392947103,
+    "avg_energy_per_op": 20.6848688077246,
     "min_theoretical_energy": 12.25,
     "max_theoretical_energy": 30.25,
     "voltage_distribution": {
-      "3.5V": 11365,
-      "4.0V": 40648,
-      "4.5V": 116067,
-      "5.0V": 53908,
-      "5.5V": 16212
+      "3.5V": 9912,
+      "4.0V": 36387,
+      "4.5V": 135482,
+      "5.0V": 43174,
+      "5.5V": 13245
     },
     "total_operations": 238200
   },
