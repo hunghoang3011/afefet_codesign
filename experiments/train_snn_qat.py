@@ -196,8 +196,8 @@ def evaluate(model, test_loader, device, T=20):
 def main():
     device = 'cpu'
     T = 20
-    batch_size = 128
-    epochs = 20
+    batch_size = 256
+    epochs = 100
     lr = 1e-3
 
     voltage_levels = [3.5, 4.0, 4.5, 5.0, 5.5]

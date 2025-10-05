@@ -123,7 +123,7 @@ def evaluate(model, test_loader, device, T=20):
     return 100. * correct / total
 
 def main():
-    device = 'cpu'
+    device = 'cuda'
     T = 20
     
     print("Loading pretrained baseline model...")

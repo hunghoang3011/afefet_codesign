@@ -97,8 +97,8 @@ def evaluate(model, test_loader, device, T=20):
     return 100. * correct / total
 
 def main():
-    batch_size = 128
-    num_epochs = 10
+    batch_size = 256
+    num_epochs = 100
     lr = 1e-3
     T = 20
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
