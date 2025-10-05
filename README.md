@@ -164,8 +164,8 @@ device = MFMISDevice(area_ratio=1.0, base_voltage=4.5)
 V_FE, V_MIS = device.voltage_division(torch.tensor(4.5))
 
 # Test STM vs LTM switching
-P_stm, mode_stm = device.switching_probability(4.5, 10e-6)   # STM
-P_ltm, mode_ltm = device.switching_probability(4.5, 1e-3)    # LTM
+P_stm, stm_mask_stm, V_FE_stm = device.switching_probability(4.5, 10e-6)   # STM
+P_ltm, stm_mask_ltm, V_FE_ltm = device.switching_probability(4.5, 1e-3)    # LTM
 ```
 
 ### Reconfigurable SNN

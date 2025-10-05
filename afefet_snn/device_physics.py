@@ -198,12 +198,17 @@ class MFMISDevice:
         # Paper: STM = partial AFE + back-switch; LTM = complete AFE + de-trapping
         # Enhanced: area-ratio dependent threshold (larger devices need longer pulses)
         width_thr = self.width_threshold / (1 + 0.5 * self.area_ratio)
-        if (pulse_width < width_thr) and (V_FE < V_coercive_T_eff):
-            mode = 'STM'  # Partial AFE switching, volatile
+        
+        # Ensure pulse_width is a tensor broadcastable to V_FE
+        if not torch.is_tensor(pulse_width):
+            pulse_width_t = torch.as_tensor(pulse_width, device=V_FE.device, dtype=V_FE.dtype)
         else:
-            mode = 'LTM'  # Complete AFE switching + de-trapping, non-volatile
+            pulse_width_t = pulse_width.to(device=V_FE.device, dtype=V_FE.dtype)
+        
+        # Element-wise STM mask (True=STM, False=LTM)
+        stm_mask = (pulse_width_t < width_thr) & (V_FE < V_coercive_T_eff)
 
-        return P_switch, mode
+        return P_switch, stm_mask, V_FE  # return V_FE too (handy for de-trapping)
 
     def charge_detrapping_probability(self, V_FE, pulse_width, mode):
         """
@@ -278,6 +283,8 @@ class MFMISDevice:
             # STM: pure exponential decay (50ms timescale) with temperature dependence
             tau = self.stm_retention / temp_factor
             decay_factor = torch.as_tensor(-time_elapsed / tau, device=dev, dtype=dtype).exp()
+            # Add small decay floor to prevent total weight collapse (numerical guard)
+            decay_factor = torch.clamp(decay_factor, 0.1, 1.0)  # floor at 10%
             return state * decay_factor
         else:
             # LTM: Use experimental baseline ≥ 10⁴ s (Suppl. Fig. 11)
@@ -457,7 +464,7 @@ class ReconfigurableWeight(nn.Module):
         """
         Write operation with mode selection based on pulse width
 
-        ENHANCED: Integrates charge de-trapping mechanism
+        ENHANCED: Integrates charge de-trapping mechanism with vectorized mode handling
 
         Args:
             new_value: Target weight value
@@ -472,38 +479,30 @@ class ReconfigurableWeight(nn.Module):
         # Device-safe voltage tensor
         V_tensor = torch.as_tensor(voltage, device=self.weight.device, dtype=self.weight.dtype)
 
-        # Get V_FE for de-trapping calculation
-        V_FE, _ = self.device.voltage_division(V_tensor)
+        # Determine switching probability and per-element mode
+        P_switch, stm_mask, V_FE = self.device.switching_probability(V_tensor, pulse_width)
 
-        # Determine switching probability and mode
-        P_switch, mode = self.device.switching_probability(V_tensor, pulse_width)
-
-        # CRITICAL: Calculate charge de-trapping probability
-        P_detrapping = self.device.charge_detrapping_probability(V_FE, pulse_width, mode)
-
-        # Elementwise stochastic switching (device-safe)
+        # Elementwise stochastic switching
         p_switch = P_switch.clamp(0, 1).to(self.weight.device, self.weight.dtype)
-        switching_mask = torch.rand_like(self.weight) < p_switch
+        switching_mask = (torch.rand_like(self.weight) < p_switch)
 
-        # Apply write noise
+        # Apply write noise and update
         noisy_value = self.device.write_noise(new_value)
-
-        # Update weight (probabilistic switching)
         self.weight.data = torch.where(switching_mask, noisy_value, self.weight.data)
 
-        # Update mode tracking
-        mode_value = 0 if mode == 'STM' else 1
-        self.mode = torch.where(switching_mask,
-                                torch.full_like(self.mode, mode_value),
-                                self.mode)
+        # Update mode tracking: 0 for STM, 1 for LTM, element-wise
+        mode_tensor = torch.where(stm_mask, torch.zeros_like(self.mode), torch.ones_like(self.mode))
+        self.mode = torch.where(switching_mask, mode_tensor, self.mode)
 
-        # Store de-trapping strength for LTM retention enhancement
-        if mode == 'LTM':
-            p_detrap_scalar = P_detrapping.item() if torch.is_tensor(P_detrapping) else P_detrapping
+        # Per-element de-trapping (only where LTM AND switched)
+        ltm_switched = switching_mask & (~stm_mask)
+        if ltm_switched.any():
+            P_detrapping = self.device.charge_detrapping_probability(V_FE, pulse_width, mode='LTM')
+            # Broadcast to weight shape
+            if P_detrapping.ndim == 0:
+                P_detrapping = torch.full_like(self.detrapping_strength, P_detrapping.item())
             self.detrapping_strength = torch.where(
-                switching_mask,
-                torch.full_like(self.detrapping_strength, p_detrap_scalar),
-                self.detrapping_strength
+                ltm_switched, P_detrapping.to(self.detrapping_strength.dtype), self.detrapping_strength
             )
 
         # Update write count (for endurance modeling)

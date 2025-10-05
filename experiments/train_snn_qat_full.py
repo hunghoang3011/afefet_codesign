@@ -74,7 +74,7 @@ class AFeFETLinear(nn.Module):
         # Device model with configurable parameters including temperature
         self.device = MFMISDevice(area_ratio=area_ratio, base_voltage=base_voltage,
                                  V_coercive=V_coercive, k=k, width_threshold=width_threshold,
-                                 temperature=temperature)
+                                 temperature=temperature, stm_retention=0.3)  # More realistic STM retention
 
         # Learnable parameters
         self.weight = nn.Parameter(torch.zeros(out_features, in_features))
@@ -152,18 +152,18 @@ class ReconfigurableAFeFETSNN(nn.Module):
     Complete AFeFET SNN with reconfigurability
     """
     def __init__(self, T=20, voltage_levels=[3.5, 4.0, 4.5, 5.0, 5.5],
-                 base_voltage=4.5, area_ratio_layer1=1.0, area_ratio_layer2=1.0):
+                 base_voltage=4.5, area_ratio_layer1=1.0, area_ratio_layer2=1.0, temperature=300.0):
         super().__init__()
         self.T = T
 
         # Layer 1: Can be configured as neuron (STM) or synapse (LTM)
         self.fc1 = AFeFETLinear(784, 300, voltage_levels, base_voltage,
-                                area_ratio=area_ratio_layer1, mode='LTM')
+                                area_ratio=area_ratio_layer1, mode='LTM', temperature=temperature)
         self.lif1 = neuron.LIFNode(tau=2.0, surrogate_function=surrogate.ATan())
 
         # Layer 2: Typically synaptic (LTM)
         self.fc2 = AFeFETLinear(300, 10, voltage_levels, base_voltage,
-                                area_ratio=area_ratio_layer2, mode='LTM')
+                                area_ratio=area_ratio_layer2, mode='LTM', temperature=temperature)
         self.lif2 = neuron.LIFNode(tau=2.0, surrogate_function=surrogate.ATan())
 
         # Store voltage/energy stats
@@ -195,33 +195,34 @@ class ReconfigurableAFeFETSNN(nn.Module):
         return x
 
     def _log_energy(self, layer_name):
-        """Log energy consumption"""
+        """Log energy consumption per switching event"""
         layer = getattr(self, layer_name)
         pulse_width = layer.get_pulse_width()
 
-        # Calculate energy per operation
+        # Calculate energy per switching event (not diluted over all weights)
         with torch.no_grad():
-            target_voltages = layer.base_voltage * (1 + layer.weight * layer.alpha)
-            avg_voltage = target_voltages.mean().item()
-
-            # Get V_FE from voltage division
-            V_FE, _ = layer.device.voltage_division(torch.tensor(avg_voltage))
-
-            # CORRECTED: Switching energy with C_MIS_eff and 0.5 factor
-            # E = 0.5 * C * V^2 for capacitor energy
-            C_MIS_eff = layer.device.C_MIS * layer.device.area_ratio
-            switching = 0.5 * C_MIS_eff * (V_FE.item() ** 2)
-
-            # Leakage energy
-            leakage = avg_voltage * 1e-9 * pulse_width
-
-            total_energy = (switching + leakage) / layer.weight.numel()
+            w = layer.weight
+            V = layer.base_voltage * (1 + w * layer.alpha)
+            
+            # Get switching probability (tensor-aware)
+            P, stm_mask, _ = layer.device.switching_probability(V, pulse_width, use_nls=True)
+            switching_mask = (torch.rand_like(P) < P)
+            
+            # Use device's per-event energy (counts only switched weights)
+            e_per_weight, n_sw = layer.device.calculate_energy(
+                V_applied=V, switching_mask=switching_mask, 
+                pulse_width=pulse_width, return_per_weight=False
+            )
+            
+            # e_per_weight is mean energy per switching event (J)
+            total_energy = e_per_weight.item()  # already per-event mean
 
         self.energy_log.append({
             'layer': layer_name,
             'mode': layer.mode,
             'energy': total_energy,
-            'voltage': avg_voltage
+            'voltage': V.mean().item(),
+            'switching_events': n_sw.item() if hasattr(n_sw, 'item') else n_sw
         })
 
     def configure_for_inference(self, scenario='balanced'):
@@ -232,11 +233,14 @@ class ReconfigurableAFeFETSNN(nn.Module):
         Key: We only switch modes (STM/LTM), NOT alpha!
         Alpha was learned during training and should stay fixed.
         Mode switching alone provides power/accuracy tradeoff via retention.
+        
+        STM Strategy: fc1=STM (volatile "neuron" side), fc2=LTM (stable classifier)
+        This prevents total network collapse while demonstrating volatility effects.
         """
         if scenario == 'low_power':
-            # STM mode: volatile, faster decay, lower energy
-            self.fc1.switch_mode('STM')
-            self.fc2.switch_mode('STM')
+            # STM mode: volatile neuron layer, stable classifier
+            self.fc1.switch_mode('STM')  # volatile "neuron" side
+            self.fc2.switch_mode('LTM')  # stable classifier head
             # DO NOT change alpha - it causes weight corruption!
 
         elif scenario == 'high_accuracy':
@@ -457,7 +461,7 @@ def main():
     device = 'cuda'
     T = 20
     batch_size = 256
-    epochs = 100  # More epochs for better convergence
+    epochs = 200  # Increased epochs for better convergence
     lr = 1e-3
 
     voltage_levels = [3.5, 4.0, 4.5, 5.0, 5.5]
@@ -480,14 +484,21 @@ def main():
     print("=" * 70)
     print()
 
-    # Data
-    transform = transforms.Compose([
+    # Data with augmentation for better convergence
+    train_transform = transforms.Compose([
+        transforms.RandomRotation(10),  # ±10 degree rotation
+        transforms.RandomAffine(0, translate=(0.1, 0.1)),  # ±10% translation
+        transforms.ToTensor(),
+        transforms.Normalize((0.1307,), (0.3081,))
+    ])
+    
+    test_transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))
     ])
 
-    train_dataset = datasets.MNIST('../data/', train=True, download=True, transform=transform)
-    test_dataset = datasets.MNIST('../data/', train=False, transform=transform)
+    train_dataset = datasets.MNIST('../data/', train=True, download=True, transform=train_transform)
+    test_dataset = datasets.MNIST('../data/', train=False, transform=test_transform)
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)

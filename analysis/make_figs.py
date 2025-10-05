@@ -122,7 +122,7 @@ def fig_phase_map(Vmin=2.0, Vmax=6.0, Tmin=1e-7, Tmax=1e-1, nV=80, nT=80, area_r
     P = torch.zeros(nT, nV)
     for j, V in enumerate(V_grid):
         for i, t in enumerate(T_grid):
-            p, _ = dev.switching_probability(V, float(t), use_nls=True)  # scalar V and scalar t
+            p, stm_mask, _ = dev.switching_probability(V, float(t), use_nls=True)  # scalar V and scalar t
             P[i, j] = p
     plt.figure()
     plt.imshow(P.numpy(), aspect="auto", origin="lower",
