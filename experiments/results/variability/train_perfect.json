@@ -1,0 +1,132 @@
+{
+  "scenario": "perfect",
+  "variability_config": {
+    "D2D_enabled": false,
+    "D2D_V_coercive_std": 0.1,
+    "D2D_capacitance_std": 0.05,
+    "D2D_area_ratio_std": 0.08,
+    "C2C_enabled": false,
+    "C2C_write_std": 0.021,
+    "C2C_read_std": 0.003,
+    "Temperature_enabled": false,
+    "Temp_range_K": [
+      280,
+      320
+    ],
+    "Retention_variation_enabled": false,
+    "Retention_std": 0.0
+  },
+  "train_history": [
+    {
+      "epoch": 1,
+      "loss": 1.5929957574872828,
+      "acc": 79.315
+    },
+    {
+      "epoch": 2,
+      "loss": 1.5378965469819905,
+      "acc": 87.67
+    },
+    {
+      "epoch": 3,
+      "loss": 1.5320920832375728,
+      "acc": 88.855
+    },
+    {
+      "epoch": 4,
+      "loss": 1.528610436138568,
+      "acc": 89.61333333333333
+    },
+    {
+      "epoch": 5,
+      "loss": 1.5272100866476357,
+      "acc": 89.86333333333333
+    },
+    {
+      "epoch": 6,
+      "loss": 1.5256678745436516,
+      "acc": 89.92
+    },
+    {
+      "epoch": 7,
+      "loss": 1.524616800899953,
+      "acc": 90.24
+    },
+    {
+      "epoch": 8,
+      "loss": 1.5237290973602327,
+      "acc": 90.45666666666666
+    },
+    {
+      "epoch": 9,
+      "loss": 1.5220872008724253,
+      "acc": 90.50333333333333
+    },
+    {
+      "epoch": 10,
+      "loss": 1.521227891002891,
+      "acc": 90.54833333333333
+    }
+  ],
+  "test_history": [
+    {
+      "epoch": 1,
+      "loss": 1.5402687967300415,
+      "acc": 85.57
+    },
+    {
+      "epoch": 2,
+      "loss": 1.5317670957565308,
+      "acc": 87.96
+    },
+    {
+      "epoch": 3,
+      "loss": 1.5270238191604615,
+      "acc": 89.41
+    },
+    {
+      "epoch": 4,
+      "loss": 1.5287417112350463,
+      "acc": 89.7
+    },
+    {
+      "epoch": 5,
+      "loss": 1.5289603406906127,
+      "acc": 89.54
+    },
+    {
+      "epoch": 6,
+      "loss": 1.5285090116500855,
+      "acc": 89.94
+    },
+    {
+      "epoch": 7,
+      "loss": 1.5291836408615112,
+      "acc": 90.05
+    },
+    {
+      "epoch": 8,
+      "loss": 1.5274892152786255,
+      "acc": 90.24
+    },
+    {
+      "epoch": 9,
+      "loss": 1.5264813306808471,
+      "acc": 90.14
+    },
+    {
+      "epoch": 10,
+      "loss": 1.526598484992981,
+      "acc": 90.15
+    }
+  ],
+  "robustness_tests": {
+    "perfect": 90.15,
+    "c2c_only": 90.27,
+    "d2d_only": 90.15,
+    "d2d_moderate": 90.25,
+    "d2d_high": 90.22,
+    "realistic": 90.16
+  },
+  "best_accuracy": 90.24
+}

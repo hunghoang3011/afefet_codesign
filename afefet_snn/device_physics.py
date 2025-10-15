@@ -210,6 +210,24 @@ class MFMISDevice:
 
         return P_switch, stm_mask, V_FE  # return V_FE too (handy for de-trapping)
 
+    def switching_probability_with_variability(self, V_applied, pulse_width, use_nls=True, temperature=None):
+
+        if temperature is None:
+            temperature = 300.0
+        
+    # Use existing voltage_division
+        V_FE, V_MIS = self.voltage_division(V_applied)
+    
+    # Use existing switching_probability logic
+        P_switch, mode = self.switching_probability(V_applied, pulse_width)
+    
+    # Create STM mask for variability code
+        V_coercive = 3.0
+        width_threshold = 100e-6
+        stm_mask = (pulse_width < width_threshold) & (V_FE < V_coercive)
+        
+        return P_switch, stm_mask, V_FE
+
     def charge_detrapping_probability(self, V_FE, pulse_width, mode):
         """
         Electron de-trapping extends retention (LTM only)
@@ -665,6 +683,7 @@ class TemporalDynamics:
             weight_change = -A_minus * torch.as_tensor(delta_t / tau_minus, device=device, dtype=dtype).exp()
 
         return weight_change
+        
 
 
 def demonstrate_reconfigurability():

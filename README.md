@@ -39,6 +39,10 @@ cat results/metrics/qat_snn_full_results.json
 - **[QUICK_START.md](QUICK_START.md)** - How to run demos and training
 - **[PRESENTATION_SUMMARY.md](PRESENTATION_SUMMARY.md)** - Complete summary for your professor
 
+### ✨ NEW: Variability Study
+- **[VARIABILITY_QUICKSTART.md](VARIABILITY_QUICKSTART.md)** - ⚡ Quick start for variability-aware training
+- **[VARIABILITY_STUDY.md](VARIABILITY_STUDY.md)** - 📊 Complete variability research documentation
+
 ### For Technical Details
 - **[IMPLEMENTATION_COMPLETE.md](IMPLEMENTATION_COMPLETE.md)** - Full feature comparison (before/after)
 - **[PAPER_COMPARISON.md](PAPER_COMPARISON.md)** - Honest assessment vs paper
